@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+<div class="container">
+  <h1 class="text-center">{{ course.title }}</h1>
+  <hr />
+  <div class="justify-content-center">
+    <table class="table table-bordered table-responsive-sm" id="faculty-course">
+      <thead>
+      <tr>
+        <th>Section Number</th>
+        <th>CRN</th>
+        <th>Day</th>
+        <th>Time</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for section in course.sections %}
+      <tr>
+        
+        <td><a class="d-block" href="viewSection.php?course_id={{ course.id }}&section_id={{ section.id }}">{{ section.number }}</a></td>
+        <td>{{ section.crn }}</td>
+        <td>{{ section.days }}</td>
+        <td>{{ section.time | date("g:iA") }}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="p-2">
+    <a href="editCourse.php?course_id={{ course.id }}" class="float-left pr-4">Edit Course</a>
+    <a href="sectionCreation.php?course_id={{ course.id }}" class="float-left pr-4">Add Section</a>
+    <a href="assignmentCreation.php?course_id={{ course.id }}" class="float-left pr-4">Add Assignment</a>
+  </div>
+</div>
+</body>
+{{ include('common/infoBar.twig.html') }}
+<script>
+  $(document).ready(function () {
+      var dataTable =  $("#faculty-course").DataTable({
+        searching: false,
+        lengthChange: false,
+        bInfo: false,
+        bPaginate: false,
+        "scrollY": "22rem",
+        "scrollCollapse": true,
+        "columns": [
+          { "width": "10%" },
+          { "width": "25%" },
+          { "width": "20%" },
+          { "width": "30%" }
+        ]
+      });
+      dataTable.draw();
+
+      $(window).resize(function () {
+        dataTable.draw();
+      });
+  });
+</script>
+</html>

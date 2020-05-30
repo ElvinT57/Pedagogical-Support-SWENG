@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+<div class="container mt-4">
+
+  <div class="row text-center">
+    <div class="col">
+      <h1>Edit Section</h1>
+      <h2 id="course-section" data-course-id="{{ course.id }}" data-section-id="{{ section.id }}">{{ course.title }}</h2>
+    </div>
+  </div>
+  <hr />
+  <div class=container>
+    <div id="sec-form-div">
+      <form id="section-form">
+        <label>Semester</label>
+        <select class="browser-default custom-select" id="input-semester" name="semester" value="{{ section.semester }}">
+          <option value="Spring">Spring</option>
+          <option value="Summer" value="Summer">Summer</option>
+          <option value="Fall" value="Fall">Fall</option>
+          <option value="Winter" value="Winter">Winter</option>
+        </select><br><br>
+
+        <div class="form-group">
+            <label>CRN</label>
+            <input class="form-control" type="number" maxlength="5" onchange="characterLimit(this, 5)" id="input-crn" name="crn" value="{{ section.crn }}">
+          </div>
+
+        <div class="form-group">
+          <label>Section</label>
+          <input class="form-control" type="number" min="1" id="input-section" name="section" value="{{ section.number }}">
+        </div>
+
+        <div class="form-group">
+          <label>Lecture Meeting Days</label>
+          <input class="form-control" id="input-days" name="days" value="{{ section.meetingDays }}">
+        </div>
+
+        <div class="form-group">
+          <label>Lecture Start Time</label>
+          <input class="form-control" type="time" id="input-begin-time" name="begin-time" value="{{ section.beginTime }}">
+        </div>
+
+        <div class="form-group">
+          <label>Lab Meeting Days</label>
+          <input class="form-control" id="input-lab-days" name="lab-days" value="{{ section.labMeetingDays }}">
+        </div>
+
+        <div class="form=group">
+          <label>Lab Begin Time</label>
+          <input class="form-control" type="time" id="input-lab-begin-time" name="lab-begin-time" value="{{ section.labBeginTime }}">
+        </div>
+        
+        <div class="form-group">
+            <label>Session</label>
+            <input class="form-control" id="input-session" name="session" value="{{ section.session }}">
+        </div>
+
+        <div class="form-group">
+          <label>Year</label>
+          <input class="form-control" type="number" id="input-year" onchange="characterLimit(this, 4)" name="year" value="{{ section.year }}">
+      </div>
+
+      <div class="row justify-content-center pb-2">
+          <input type="button" id="submit-button" value="Submit" class="d-inline-block text-center ml-3 mr-3 border border-primary btn btn-success" onclick="updateSection()" />
+          <a class="border border-secondary btn btn-danger" href="viewSection.php?course_id={{ course.id }}&section_id={{ section.id }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+</div>
+<script>
+  
+  function characterLimit(e, max){
+    let val = $(e).val();
+    if(val.length > max){
+      $(e).val(val.substring(0, max))
+    }
+  }
+
+  function validateForm() {
+    //Boolean variables to verify fields have been filled in form
+    let crnCheck = true;
+    let sectionCheck = true;
+    let lectureDayCheck= true;
+    let lectureTimeCheck = true;
+    let labTimeCheck = true;
+    let sessionCheck = true;
+    let yearCheck = true;
+
+    if ( $("#input-crn").val().trim() == '') {
+      crnCheck = false;
+    }
+    if ( $("#input-section").val().trim() == '') {
+      sectionCheck = false;
+    }
+    if ( $("#input-days").val().trim() == '') {
+      lectureDayCheck = false;
+    }
+    if ( $("#input-begin-time").val().trim() == '') {
+      lectureTimeCheck = false;
+    }
+    if ( $("#input-lab-days").prop("value") != "") {
+
+      if( $("#input-lab-begin-time").val().trim() == '') {
+        labTimeCheck = false;
+        console.log("False");
+      }
+      
+    }
+    if ( $("#input-session").val().trim() == '') {
+      sessionCheck = false;
+    }
+    if ( $("#input-year").val().trim() == '') {
+      yearCheck = false;
+    }
+
+    if (crnCheck && sectionCheck && lectureDayCheck && lectureTimeCheck && labTimeCheck
+       && sessionCheck && yearCheck) {
+      $('#submit-button').prop("disabled", false);
+       }
+    else {
+      $('#submit-button').prop("disabled", true);
+    }
+  }
+
+  $(document).ready(function () {
+      validateForm();
+      $('#input-semester').on("input", validateForm);
+      $('#input-crn').on("input", validateForm);
+      $('#input-section').on("input", validateForm);
+      $('#input-days').on("input", validateForm);
+      $("#input-begin-time").on("input", validateForm);
+      $("#input-lab-days").on("input", validateForm);
+      $("#input-lab-begin-time").on("input", validateForm);
+      $("#input-session").on("input", validateForm);
+      $("#penalty-daily").on("input", validateForm);
+      
+      
+    
+
+    });
+
+  function updateSection(){
+    // retrieve section data
+    data = [];
+    data.action = "update"; // ajax action
+    data.semester = $('#input-semester').val();
+    data.crn = $('#input-crn').val();
+    data.section = $('#input-section').val();
+    data.daysTaught = $('#input-days').val();
+    data.beginTime = $('#input-begin-time').val();
+    data.labDays = $('#input-lab-days').val();
+    data.labBeginTime = $('#input-lab-begin-time').val();
+    data.session = $('#input-session').val();
+    data.year = $('#input-year').val();
+    data.course_id = $('#course-section').attr("data-course-id");
+    data.section_id = $('#course-section').attr("data-section-id");
+    
+    // execute ajax call to the end point
+    $.ajax({
+      url: "./api/endpoint/section.php",
+      data: {
+        action : data.action,
+        semester : data.semester,
+        crn : data.crn,
+        section : data.section,
+        daysTaught : data.daysTaught,
+        beginTime : data.beginTime,
+        labDays : data.labDays,
+        labBeginTime : data.labBeginTime,
+        session : data.session,
+        year : data.year,
+        course_id : data.course_id,
+        section_id : data.section_id
+      },
+      method: "POST",
+      cache: false,
+      success: function(response, status, xhr) {
+        alert('Successfully updated the section.');
+        location.href = "viewSection.php?course_id="+ data.course_id +"&section_id="+ data.section_id;
+      },
+      error: function (xhr, status, error) {
+        console.log("Error");
+        console.log(xhr);
+        console.log(status);
+        console.log(error);
+      }
+    });
+  }
+</script>
+</body>
+{{ include('common/infoBar.twig.html') }}
+
+</html>

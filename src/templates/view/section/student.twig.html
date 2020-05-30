@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+<div class="container">
+    <div class="text-center">
+        <h1 class="text-center">
+            {{ course.title }}
+        </h1>
+        <h2>
+            {{ section.meetingDays }} {{ section.beginTime | date("g:iA")}}
+        </h2>
+        {% if section.labMeetingDays and section.labBeginTime %}
+        <h2>
+            {{ section.labMeetingDays }} {{ section.labBeginTime | date("g:iA")}}
+        </h2>
+        {% endif %}
+    </div>
+    <hr>
+    <div class="container">
+        <table class="table table-bordered table-responsive-sm w-100" id="student-course">
+            <thead>
+            <tr>
+                <th>Assignment Name</th>
+                <th>Due Date</th>
+                <th>Assignment Type</th>
+                <th>Points Earned</th>
+                <th>Possible Points</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for assignment in assignments %}
+            <tr>
+                <td><a class="d-block" href="studentSubmission.php?assignment_id={{ assignment.assignment_id }}&section_id={{ section.id }}">{{ assignment.title }}</a></td>
+                <td>{{ assignment.dueDate | date("m/d/Y") }}</td>
+                <td>{{ assignment.type }}</td>
+                {% if assignment.assignmentSubmission_id is empty %}
+                    {% if assignment.type == "Lab" %}
+                        <td>Ungraded</td>
+                    {% else %}
+                        <td>Not Submitted</td>
+                    {% endif %}
+                {% else %}
+                    {% if assignment.baseGrade is empty %}
+                    <td>Ungraded</td>
+                    {% else %}
+                    <td>{{ assignment.baseGrade }}</td>
+                    {% endif %}
+                {% endif %}
+                <td>{{ assignment.maxGrade }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script>
+        $('#student-course').DataTable({
+            searching: false,
+            bInfo: false,
+            bPaginate: false
+        });
+    </script>
+</div>
+</body>
+
+</html>

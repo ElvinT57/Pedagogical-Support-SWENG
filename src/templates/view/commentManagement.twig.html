@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+<div class="container">
+    <h1 class="text-center">Comments</h1>
+    <hr/>
+    <h5 class="settings-item-title">Pre-defined Comments</h5>
+    <div class="settings-item">
+        <table class="table table-bordered" id="predefined-comm-table">
+            <thead>
+                <th>Text</th>
+                <th>Frequency</th>
+                <th>Disabled</th>
+            </thead>
+            <tbody>
+            {% for comment in comments|filter(comment => comment.disabled == false) %}
+            <tr data-comment_id="{{ comment.id }}">
+                <td>{{ comment.text }}</td>
+                <td>{{ comment.frequency }}</td>
+                <td class="remove-button"></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <br/>
+
+        <label for="new-comment">Add New Comment</label>
+        <form id="comment-form">
+            <textarea class="form-control" id="new-comment" placeholder="Enter new comment here..."></textarea>
+            <button type="button" class="btn btn-success mt-2" id="submit" name="add-comment-button" disabled>Add</button>
+        </form>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('#new-comment').on('input', function(event) {
+            $('#submit').prop('disabled', event.target.value.trim() == "");
+        });
+        // removing a comment from the table
+        $('#predefined-comm-table tbody').on('click', 'button', function(event) {
+            if (!confirm("Are you sure you want to remove this comment?")) {
+                return;
+            }
+
+            let target = event.target; // use target over this to avoid bs
+            let comment_id = $(target).parents('tr').data('comment_id');
+
+            $.ajax({
+                url: "./api/endpoint/comment.php",
+                data: {
+                    action : 'delete',
+                    comment_id: comment_id
+                },
+                method: "POST",
+                cache: false,
+                success: function (data, status, xhr) {
+                    dataTable.row($(target).parents('tr')).remove();
+                    dataTable.draw();
+                },
+                error: function (xhr, status, error) {
+                    console.log(error);
+                    console.log(status);
+                }
+            });
+
+        });
+
+        // Adding new comment
+        $('#submit').on("click", function (event) {
+            event.preventDefault();
+
+            $.ajax({
+                url: "./api/endpoint/comment.php",
+                data: {
+                    action : 'insert',
+                    comment_text: $('#new-comment').val().trim()
+                },
+                method: "POST",
+                cache: false,
+                success: function(data, status, xhr) {
+                    window.location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.log("Error!!");
+                    console.log(status);
+                    console.log(error);
+                }
+            });
+        });
+    });
+
+
+    // define our datatable
+    let dataTable = $('#predefined-comm-table').DataTable({
+        searching: false,
+        lengthChange: false,
+        bInfo: false,
+        bPaginate: false,
+        "autoWidth": false,
+        "scrollY": "300px",
+        "scrollCollapse": true,
+        "columnDefs": [
+            {
+                "targets": -1,
+                "data": null,
+                "defaultContent": "<button class='btn btn-danger'>X</button>"
+            }
+        ],
+        "columns": [
+            null,
+            null,
+            {"width": "10%"}
+        ]
+    });
+
+    // refresh the datatable's box size when loading the page
+    // and when resizing the page.
+    $(document).ready(function () {
+        dataTable.draw();
+    });
+
+    $(window).resize(function () {
+        dataTable.draw();
+    });
+</script>
+<style>
+    .settings-item-title {
+        margin-left: 10%;
+    }
+
+    .settings-item {
+        width: 80%;
+        margin: 0 auto;
+        border: 1px solid lightgray;
+        padding: 2%;
+        border-radius: 20px;
+    }
+</style>
+</body>
+{{ include('common/infoBar.twig.html') }}
+</html>

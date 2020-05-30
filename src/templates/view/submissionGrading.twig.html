@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+<div class="container">
+  <h1 id="assignment" class="text-center" data-assignment-id="{{ assignment.assignment_id }}" data-submission-id="{{ submission.id }}">{{ assignment.title }}</h1>
+  <h5 class="text-secondary text-center">Due Date: {{assignment.dueDate | date('m/d/Y') }}</h5>
+  <hr/>
+  <form>
+    <div class="row ">
+      <div class="col-3">
+        <img class="mr-3 img-thumbnail" src=" {{ student.profilePath }}" alt="student picture">
+      </div>
+      <div class="col-4">
+        <div class="row">
+          <h4 id="student" data-user-id="{{ student.id }}" ><small><b>{{ student.firstName }} {{ student.lastName }}</b></small></h4>
+        </div>
+        <div class="row">
+          <h4><small>{{ student.bannerId }}</small></h4>
+        </div>
+        <div class="row">
+          <h4><small>{{ student.userName }}</small></h4>
+        </div>
+      </div>
+    </div>
+    <hr/>
+    {% if not submission is empty %}
+    <div class="row justify-content-center">
+      <img class="img-fluid" id="homework-image" submissionId="{{ submission.id }}" src="{{ submission.imagePath}}" alt="homework submission">
+    </div>
+    <hr />
+    {% endif %}
+    <div class="row justify-content-center">
+      <div class="col-6 border-right">
+        <div class="row justify-content-center">
+          <h4 class="text-center">Set Grade</h4>
+        </div>
+        <div class="row justify-content-center">
+          <label for="grade-slider">0 </label>
+          <input style="width: 55%;" type="range" min="0" max="{{ assignment.maxGrade }}" value="{{ assignment.maxGrade }}" class="custom-range ml-1 mr-1" id="grade-slider">
+          <label for="grade-slider">{{ assignment.maxGrade }}</label>
+        </div>
+        <div class="row mt-2 justify-content-center">
+          <div class="col-4">
+          <label for="grade">Grade</label>
+        </div>
+          <div class="col-3">
+            <input type="number" min="0" max="{{ assignment.maxGrade }}" class="form-control" value="{{ assignment.maxGrade }}" id="grade">
+          </div>
+        </div>
+        <div class="row mt-1 justify-content-center">
+          <div class="col-4">
+            <label for="grade">Extra-Credit</label>
+          </div>
+          <div class="col-3">
+            <input type="number" min="0" class="form-control"  id="extra-credit" value="0">
+          </div>
+        </div>
+        <div class="row mt-1 justify-content-center">
+          <div class="col-4">
+            <label for="late-penalty">Ignore Late Penalty</label>
+          </div>
+          <div class="col-3 text-center align-middle">
+            <input type="checkbox" class="form-check-input mx-auto" id="late-penalty" name="late-penalty">
+          </div>
+        </div>
+        {% if submission is empty %}
+        <div class="row mt-1 justify-content-center">
+          <label><b>Date Submitted</b></label>
+        </div>
+        <div class="row mt-1 justify-content-center">
+          <div class="col-7">
+            <input class="form-control" type="date" value="{{ assignment.dueDate | date('Y-m-d') }}" id="date-submitted">
+          </div>
+        </div>
+        
+        {% endif %}
+      </div>
+
+      <div class="col-6">
+        <label class="label text-center" for="saved-comments"><b>Additional Comment</b></label>
+        <textarea class="form-control" rows="7" id="free-form-comment"></textarea>
+
+        <div class="row mt-1 justify-content-center col-12">
+          <label class="label text-center" for="saved-comments"><b>Saved Comments</b></label>
+          <select multiple class="form-control" id="saved-comments">
+            {% for comment in predefComments %}
+            <option value="{{ comment.text }}" data-comment-id="{{ comment.id }}" >{{ comment.text }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-4 mb-3 justify-content-center">
+      <div class="col-2">
+        <button type="button" class="btn btn-success" onclick="submitGrade()">Submit</button>
+      </div>
+      <div class="col-2">
+        <a type="button" class="btn btn-danger" href="viewGrades.php?assignment_id={{ assignment.assignment_id }}&section_id={{ section.id }}">Cancel</a>
+      </div>
+      <div class="col-2">
+        <button type="button" class="btn btn-primary" onclick="nextStudent()">Next Student</button>
+      </div>
+    </div>
+  </form>
+</div>
+<!-- List of students who need grading -->
+<ul hidden id="ungradedList">
+  {% for next in ungraded %}
+  <li>{{ next.user_id }}</li>
+  {% endfor %}
+</ul>
+<script>
+  $(document).ready(function () {
+    $('#grade').on('change', function(event){
+        let maxVal = parseInt($('#grade-slider').attr('max'));
+        let innerVal = parseInt($(this).val());
+        // check if we've reached the threshold
+        if(innerVal > maxVal) {
+          innerVal = maxVal;
+          $(this).val(innerVal)
+        }
+
+        $(this).attr('value', innerVal);
+        $('#grade-slider').attr('value', innerVal)
+    });
+
+    $('#extra-credit').on('change', function(event){
+      let innerVal = parseInt($(this).val());
+      $(this).attr('value', innerVal);
+    });
+  });
+
+  let slider = document.getElementById("grade-slider");
+
+  slider.oninput = function() {
+    $('#grade').attr('value', slider.value);
+  }
+
+  /**
+   * Retrieves all the saved comments that were selected.
+   * @returns Array of comment definition ids.
+   */
+  function getCommentDefinitionsIds(){
+    let commentDefIds = [];
+    let sel = document.getElementById('saved-comments');
+
+    for(let i = 0; i < sel.options.length; i++){
+      let opt = sel.options[i];
+      if(opt.selected === true){
+        commentDefIds.push(opt.getAttribute('data-comment-id'));
+      }
+    }
+
+    return commentDefIds;
+  }
+  
+  function submitGrade() {
+    let data = {};
+    // retrieve the submission id
+    data['submission_id'] = $('#assignment').attr('data-submission-id');
+
+    // retrieve the total grade
+    data['gradeBase'] = parseInt($('#grade').attr('value'));
+    data['extraCredit'] = parseInt($('#extra-credit').attr('value'));
+
+    // retrieve the comment text
+    data['manualComment'] = $('#free-form-comment').val();
+
+    data['commentDefinition_ids'] = getCommentDefinitionsIds();
+
+    data['ignoreLatePenalty'] = ($('#late-penalty').prop("checked") == true);
+
+    // if it's an assignment without a submission
+    if(data['submission_id'] == ''){
+      data['dateSubmitted'] = $('#date-submitted').val();
+      //check if the user selected a year
+      if(data['dateSubmitted'] === ""){
+        alert("Please select a submission date.");
+        return;
+      }
+      data['user_id'] = $('#student').attr('data-user-id');
+      data['assignment_id'] = $('#assignment').attr('data-assignment-id');
+      insertNonSubmissionGrade(data);
+    }
+    else{
+      data['submission_id'] = parseInt(data['submission_id']);
+      insertSubmissionGrade(data);
+    }
+  }
+
+  function insertSubmissionGrade(data){
+    // Use Ajax to make a Post Request
+    $.ajax({
+      url: "./api/endpoint/grade.php",
+      data: {
+        action : 'insert',
+        assignmentSubmission_id : data['submission_id'],
+        gradeBase : data['gradeBase'],
+        manualComment : data['manualComment'],
+        extraCredit : data['extraCredit'],
+        commentDefinition_ids : data['commentDefinition_ids'],
+        ignoreLatePenalty : data['ignoreLatePenalty']
+      },
+      method: "POST",
+      cache: false,
+      success: function(response, status, xhr) {
+        alert('Successfully graded submission.');
+      },
+      error: function (xhr, status, error) {
+        console.log("Error");
+        console.log(xhr.responseText);
+        console.log(status);
+        console.log(error);
+      }
+    });
+  }
+
+  function insertNonSubmissionGrade(data){
+    $.ajax({
+      url: "./api/endpoint/noSubmission.php",
+      data: {
+        action : 'insert',
+        user_id : data['user_id'],
+        assignment_id : data['assignment_id'],
+        gradeBase : data['gradeBase'],
+        manualComment : data['manualComment'],
+        extraCredit : data['extraCredit'],
+        commentDefinition_ids : data['commentDefinition_ids'],
+        ignoreLatePenalty : data['ignoreLatePenalty'],
+        dateSubmitted : data['dateSubmitted']
+      },
+      method: "POST",
+      cache: false,
+      success: function(response, status, xhr) {
+        alert('Successfully graded submission.');
+      },
+      error: function (xhr, status, error) {
+        console.log("Error");
+        console.log(xhr.responseText);
+        console.log(status);
+        console.log(error);
+
+      }
+    });
+  }
+
+  function getQuerystring(key, default_)
+  {
+    if (default_==null) default_="";
+    key = key.replace(/[\\[]/,"\\\\\\[").replace(/[\\]]/,"\\\\\\]");
+    var regex = new RegExp("[\\\\?&]"+key+"=([^&#]*)");
+    var qs = regex.exec(window.location.href);
+    if(qs == null)
+      return default_;
+    else
+      return qs[1];
+  }
+
+  function getUngraded(){
+    let ul = document.getElementById('ungradedList');
+    let ungraded = [];
+
+    [].forEach.call(ul.children, function(e){
+      ungraded.push(e.textContent);
+    });
+
+    return ungraded;
+  }
+
+  function nextStudent(){
+    let ungraded = getUngraded();
+
+    if(ungraded.length <= 1){
+      alert("No more students to grade left.")
+    }else{
+      let assignment_id = getQuerystring('assignment_id');
+      let submission_id = getQuerystring('submission_id');
+      let section_id = getQuerystring('section_id');
+      let student_id = getQuerystring('student_id');
+      // retrieve the next student's id
+      let i = ungraded.indexOf(student_id);
+      student_id = ungraded[(++i) % ungraded.length]
+      
+      window.location.href = "submissionGrading.php?assignment_id=" + assignment_id + "&submission_id=" + submission_id +"&section_id=" + section_id + "&student_id=" + student_id;
+    }
+  }
+</script>
+</body>
+{{ include('common/infoBar.twig.html') }}
+
+</html>

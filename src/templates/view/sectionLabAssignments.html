@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <div class="col">
+      <h1 class="text-center">{{ assignment.title }} Lab</h1>
+    </div>
+    <hr />
+    {% for user in users %}
+    {% if user.grade is empty %}
+    <form action="labPage.php" method="POST" data-user_id="{{ user.user_id }}" data-assignment_id="{{ assignment.id }}" graded="false" grade-mode="edit">
+    {% else %}
+    <form action="labPage.php" method="POST" data-user_id="{{ user.user_id }}" data-assignment_id="{{ assignment.id }}" graded="true" grade-mode="display">
+    {% endif %}
+      <div class="row justify-content-left">
+
+        <div class="col-3">
+          <img class="img-thumbnail gradeSlider" src="./Pictures/defaultUserPicture.png" alt="User Profile Picture" class="rounded float-left" />
+        </div>
+
+        <div class="col-9">
+          <div class="row">
+            <div class="col-5">
+              <p class="text-sm-left">
+                {{ [user.firstName, ' ', user.lastName] | join  }}
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-5">
+              <p class="text-sm-left">
+                {{ user.banner_id }}
+              </p>
+            </div>
+          </div>
+          <div class="row">
+          {% if user.grade is empty %}
+            <div class="col-6">  
+              <input type="range" name="grade-range-input" min="0" max="{{ assignment.maxGrade }}" value="{{ assignment.maxGrade }}" class="custom-range ml-1 mr-1 w-80">
+            </div>
+            <div class="col-3">
+              <input type="number" name="grade-number-input" min="0" max="{{ assignment.maxGrade }}" class="form-control w-10" value="{{ assignment.maxGrade }}" id="grade" />
+            </div>
+            <div class="col-2">
+              <input class="btn btn-success" type="submit" value="Submit" />
+            </div>
+          {% else %}
+            <div class='col-3'>
+              <label><b>Grade</b></label>
+            </div>
+            <div class='col-3'>
+              <input disabled type='number' name='grade-number-input' min='0' class='form-control w-10' value='{{ user.grade }}'/>
+            </div>
+            <div class='col-3'>
+              <input class="btn btn-success ml-3 rounded-pill" type="submit" value="Edit"/> 
+            </div>
+          {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <hr />
+    </form>
+    {% endfor %}
+    <div class="justify-content-end">
+      <a href="./editAssignment.php?assignment_id={{ assignment.id }}&section_id={{ section.id }}" class= "pt-3 w-100">Edit Assignment</a>
+    </div>
+  </div>
+  <script>
+    function addSlideListener(i, element){
+      let range = $(element);
+        let number = range.parent().next().find('input[type=number]');
+
+        range.on('input', function(e) {
+          number.val(e.target.value);
+        });
+        number.on('input', function(e) {
+          range.val(e.target.value);
+        });
+    }
+
+    $(document).ready(function() {
+
+      $('form input[type=range]').each(function(i, element) {
+        addSlideListener(i, element);
+      });
+
+      $('form').submit(function(event) {
+        event.preventDefault();
+
+        let form = $(this);
+        let formRow = form.children().children().next().children().last();
+
+        let mode = form.attr('grade-mode');
+        let graded = form.attr('graded');
+
+        // check the mode
+        if(mode == "display"){
+          // display the edit grade controls
+          let gradeBase = form.find('input[type=number]').val().toString();
+          formRow.empty();
+          formRow.append("<div class='col-6'>"+  
+              "<input type='range' name='grade-range-input' min='0' max='{{ assignment.maxGrade }}' value='" + gradeBase + "' class='custom-range ml-1 mr-1 w-80'>" +
+            "</div>" +
+            "<div class='col-3'>" +
+              "<input type='number' name='grade-number-input' min='0' max='{{ assignment.maxGrade }}' class='form-control w-10' value='" + gradeBase + "' id='grade' />" +
+            "</div>" +
+            "<div class='col-2'>" +
+              "<input class='btn btn-success' type='submit' value='Submit' />" +
+            "</div>");
+          form.find('input[type=range]').each(function(i, element) {
+            addSlideListener(i, element);
+          });
+          // update grade status and mode
+          form.attr('grade-mode', 'edit');
+        }else{
+          // submit or update the grade
+          if(graded == "true"){
+            editGrade(form, formRow, "update");
+          }else{
+            editGrade(form, formRow, "insert");
+          }
+        }
+      });
+    });
+
+    function editGrade(form, formRow, action){
+      let assignment_id = form.data('assignment_id').toString();
+      let user_id = form.data('user_id').toString();
+      let gradeBase = form.find('input[type=number]').val().toString();
+      
+      $.ajax({
+        url: "./api/endpoint/labGrade.php",
+        data: {
+          action : action,
+          assignment_id : assignment_id,
+          user_id : user_id,
+          gradeBase : gradeBase
+        },
+        method: "POST",
+        error: function(xhr, status, error) {
+          console.log("Error");
+          console.log(status);
+          console.log(error);
+          console.log(xhr);
+        },
+        success: function(data, status, xhr) {
+          // remove controls
+          formRow.empty();
+          // add edit controls
+          formRow.append("<div class='col-3'>" +
+              "<label><b>Grade</b></label>"+
+            "</div>" +
+            "<div class='col-3'>" +
+              "<input disabled type='number' name='grade-number-input' min='0' class='form-control w-10' value='" + gradeBase + "'/>" +
+            "</div>" +
+            "<div class='col-3'>" +
+              "<input class='btn btn-success ml-3 rounded-pill' type='submit' value='Edit'/>" +
+            "</div>");
+          // update grade status and mode
+          form.attr('grade-mode', 'display');
+          form.attr('graded', 'true');
+        }
+      });
+    }
+  </script>
+</body>
+{{ include('common/infoBar.twig.html') }}
+
+</html>

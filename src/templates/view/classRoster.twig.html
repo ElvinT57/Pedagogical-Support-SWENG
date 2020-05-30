@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+<div class="container">
+    <div class="container">
+        <h1 id="title" class="text-center">{{ course.title }}</h1>
+        <h4 class="text-center">Section {{ section.number}} {{ section.meetingDays }} ({{ section.beginTime | slice(0, 5)}})</h4>
+        <table class="table table-bordered table-responsive-sm" id="roster-table">
+            <thead>
+            <tr>
+                <th scope="col">Profile</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email Address</th>
+                <th scope="col">Mark Dropped</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for student in students %}
+            <tr dropped="{{ student.dropped }}" id="{{ student.id }}">
+                <td style="width: 1%" class="p-0"><img class="w-100" src="{{ student.profilePath }}"></td>
+                <td scope="row">{{ [student.firstName, student.lastName]|join(' ') }}</td>
+                <td scope="col">{{ student.email}}</td>
+                <td></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="row mt-3 justify-content-between">
+            <div class="col-3">
+                <button id="save-btn" class="btn btn-success" name="save-changes-button" onclick="saveChanges()">Save Changes</button>
+            </div>
+            <div class="col-3">
+                <!-- TODO: use the section id twig template tag, to pass it as a query string -->
+                <a href="addStudents.php?section_id={{ section.id }}" class=" float-right" name="add-students-button">Add Students</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        // object for all the directories
+        var changes = {};
+
+        $(document).ready(function(){
+            // Initializing datatable
+            var dataTable = $('#roster-table').DataTable({
+                autoWidth : false,
+                "scrollX" : "100%",
+                "columns" : [
+                    null,
+                    null,
+                    null,
+                    {"width" : "5%"}
+                ]
+            });
+
+            dataTable.rows().data().each(function (value, index){
+                // create checkboxes to mark students dropped
+                let idTag = 'dropped' + index;
+                dataTable.cell(index, 3).data("<input type='checkbox' id='"+ idTag +"' class='form-check-input ml-4 mt-3'/>");
+
+                // retrieve the corresponding element from the DOM tree
+                let checkbox = $(dataTable.row(index).node()).children().last().children('input');
+                // on change functions for checkboxes
+                checkbox.change(function(){
+                    // retrieve the enrollmentId of the student's
+                    let enrollmentId = $(dataTable.row(index).node()).attr('id');
+                    
+                    if(this.checked){
+                        // The student has been marked dropped.
+                        // Hightlight row to label as dropped.
+                        $(dataTable.row(index).nodes()).addClass('table-danger');
+                        //update the dropped value
+                        $(dataTable.row(index).node()).attr('dropped', '1');
+                        // add to changed
+                        changes[enrollmentId] = "1"
+                    }else{
+                        $(dataTable.row(index).nodes()).removeClass('table-danger');
+                        $(dataTable.row(index).node()).attr('dropped', '0');
+                        changes[enrollmentId] = "0"
+                    }
+                    // a change has been made, enable the save changes button
+                    document.getElementById('save-btn').disabled = false;
+                });
+
+                // on load, retrieve their enrollment status
+                let dropped = parseInt($(dataTable.row(index).node()).attr('dropped'));
+                // update if they are marked dropped
+                if(dropped){
+                    checkbox.prop('checked', true);
+                    $(dataTable.row(index).nodes()).addClass('table-danger');
+                }
+            });
+            dataTable.draw();
+
+            $(window).resize(function(){
+                dataTable.draw();
+            });
+        });
+
+        /**
+         * Executes an ajax post method to update the drop status of the
+         * students.
+         */
+        function saveChanges(){
+            for(let id in changes){
+                $.ajax({
+                    type : "post",
+                    url: "../api/endpoint/enrollment.php",
+                    data: {action : 'update', student_id : id, status : changes[id]},
+                    method: "POST",
+                    cache: false,
+                    error: function (xhr, status, error) {
+                        console.log("Error");
+                        console.log(status);
+                        console.log(error);
+                        console.log(xhr);
+                    }
+                });
+            }
+            alert("Succesfully updated student info.");
+        }
+    </script>
+</div>
+</body>
+{{ include('common/infoBar.twig.html') }}
+</html>

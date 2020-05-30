@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+  {{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <div class="text-center">
+      <h1>{{ course.title }}</h1>
+      <h2>
+        {{ section.meetingDays }} {{ section.beginTime | date("g:iA")}}
+      </h2>
+      {% if section.labMeetingDays and section.labBeginTime %}
+      <h2>
+          {{ section.labMeetingDays }} {{ section.labBeginTime | date("g:iA")}}
+      </h2>
+      {% endif %}
+    </div>
+    <hr/>
+    <div class="container">
+      <table class="table table-bordered table-responsive-sm w-100" id="section-assignment-table">
+        <thead>
+          <tr>
+            <th>Assignments</th>
+            <th>Type</th>
+            <th>Due Date</th>
+            <th>Graded</th>
+            <th>Available</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for assignment in assignments %}
+          <tr>
+
+            {% if assignment.type == "Lab" %}
+              <td><a class="d-block" href="sectionLabAssignments.php?course_id={{ course.id }}&assignment_id={{ assignment.id }}&section_id={{ section.id }}">{{ assignment.title }}</a></td>
+            {% else %}
+              <td><a class="d-block" href="viewGrades.php?assignment_id={{ assignment.id }}&section_id={{ section.id }}">{{ assignment.title }}</a></td>
+            {% endif %}
+
+              <td>{{ assignment.type }}</td>
+              <td>{{ assignment.due_date|date('m/d/Y g:i A') }}</td>
+              <td>{{ assignment.graded }}</td>
+              {% if assignment.type == "Lab" or not assignment.permitsUpload %}
+              <td>N/A</td>
+              {% else %}
+              <td>{{ assignment.submitted }}/{{ users|length }}</td>
+              {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="row justify-content-end mt-3">
+        <div class="">
+          <a href="./editSection.php?course_id={{ course.id }}&section_id={{ section.id }}" class= "float-left p-3">Edit Section</a>
+        </div>
+        <div class="">
+          <a href="./facultyGradesReport.php?section_id={{ section.id }}" class="float-left p-3">Grades</a>
+        </div>
+        <div class="">
+          <a href="./classRoster.php?section_id={{ section.id }}" class="float-left p-3">Class Roster</a>
+        </div>
+      </div>
+    </div>
+    <script>
+      $('#section-assignment-table').DataTable({
+        searching: false,
+        lengthChange: false,
+        bInfo: false,
+        bPaginate: false
+      });
+    </script>
+  </div>
+</body>
+
+</html>

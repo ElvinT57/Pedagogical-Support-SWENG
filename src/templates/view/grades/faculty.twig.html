@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+<div class="container">
+    <div class="text-center">
+        <h1 id="assignment" data-assignment-id="{{ assignment.id }}" >{{ assignment.title }}</h1>
+    </div>
+    <div class="container">
+        <table class="table table-bordered table-responsive-sm w-100" id="submission-grade-table">
+            <thead>
+            <tr>
+                <th scope="col">Student</th>
+                <th scope="col">Date Submitted</th>
+                <th scope="col">Grade</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for student in students %}
+            <tr>
+                <td>{{ [student.firstName, student.lastName]|join(' ') }}</td>
+                {% if student.submission.id is empty %}
+                    <td>N/a</td>
+                    {% if assignment.permitsUpload %}
+                        <td>Not Submitted</td>
+                    {% else %}
+                    <td><a href="submissionGrading.php?assignment_id={{ assignment.id }}&section_id={{ section.id }}&student_id={{ student.id }}">Ungraded</a></td>
+                    {% endif %}
+                {% else %}
+                    <td>{{ student.submission.timeSubmitted | date('m/d/Y g:iA')}}</td> 
+                    {% if student.submission.gradeBase is empty %}
+                    <td><a href="submissionGrading.php?assignment_id={{ assignment.id }}&submission_id={{ student.submission.id }}&section_id={{ section.id }}&student_id={{ student.id }}">Ungraded</a></td>
+                    {% else %}
+                    <td><a href="submissionGrading.php?assignment_id={{ assignment.id }}&submission_id={{ student.submission.id }}&section_id={{ section.id }}&student_id={{ student.id }}">{{ student.submission.gradeBase }}</a></td>
+                    {% endif %}
+                {% endif %}
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>             
+        <div class="justify-content-end">
+            <div class="row">
+                <div class="col">
+                    <a href="./editAssignment.php?assignment_id={{ assignment.id }}&section_id={{ section.id }}" class= "pt-5 w-100">Edit Assignment</a>
+                </div>
+                <div class="col">
+                    <input type="file" class="custom-file-input" accept=".csv" id="input-file" required>
+                    <label class="custom-file-label" for="input-file">Input Multiple Grades</label>
+                </div>
+            </div>  
+            <form id="add-multiple-grades">
+                <div class="row justify-content-end mt-3">                
+                    <button type="submit" class="btn btn-success" name="submit-button" id="submit-button" disabled>Submit Grades</button>               
+                </div>       
+            </form>                           
+        </div>       
+    </div>       
+</div>
+
+</body>
+{{ include('common/infoBar.twig.html') }}
+<script>
+    $('#submission-grade-table').DataTable({
+        searching: true,
+        bInfo: false,
+        bPaginate: false,
+        ordering: false
+    });
+
+    $(document).ready(function () {
+        $('#input-file').change(function (e) {            
+            file = e.target.files[0];   // Thats right I used a local variable muahahahah
+            $('.custom-file-label').html(file.name);
+            $('#submit-button').attr('disabled', false);            
+        })
+
+        $('#add-multiple-grades').submit(function (event) {
+            event.preventDefault();
+            let assignment_id = $('#assignment').attr('data-assignment-id');
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let content = reader.result;
+                let contentRows = content.split('\n');
+                let contentArray = [];
+                for(let col = 1; col < contentRows.length; ++col) {  
+                    contentCol = contentRows[col].split(',').map(s => s.trim()) 
+                    // Tests to make sure there are four elements in csv row.
+                    if(contentCol.length == 4)
+                        contentArray.push(contentCol);
+                }
+
+                $.ajax({
+                    method: "post",
+                    url: "./api/endpoint/grade.php",
+                    data: {
+                        action: 'insert/multiple',
+                        gradeInfo: contentArray,                         
+                        assignment_id
+                    },
+                    success: function(response, status, xhr) {                        
+                        window.alert("Grade list succesfully uploaded!");    
+                        window.location.reload();               
+                    },
+                    error: function (xhr, status, error, data) {
+                        console.log("Error");
+                        console.log(status);
+                        console.log(error); 
+                        console.log(xhr);          
+                        window.alert("Grade list failed to upload. Try again later.");
+                    }
+                });
+            }            
+            reader.readAsText(file);
+        })
+    })
+</script>
+</html>

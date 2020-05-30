@@ -1,0 +1,20 @@
+<nav class="navbar navbar-expand-lg navbar-light mb-2">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse justify-content-between" id="navbarNavAltMarkup">
+    <div class="navbar-nav">
+      <a class="nav-link breadcrumb-item" href="landing.php">Home</a>
+      {% for crumb in breadcrumbs %}
+      <a class="nav-link breadcrumb-item" href="{{ include(template_from_string(crumb.link)) }}">
+        {{ include(template_from_string(crumb.text)) }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="navbar-nav">
+      <a class="nav-link disabled" disabled>{{ user.firstName }} {{ user.lastName }}</span>
+      <a class="nav-link" href="logout.php">Sign Out</a>
+    </div>
+  </div>
+</nav>

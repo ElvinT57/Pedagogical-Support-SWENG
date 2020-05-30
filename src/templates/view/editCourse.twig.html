@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1 class="text-center">Edit Course</h1>
+      </div>
+    </div>
+
+    <hr />
+
+    <form>
+      <div class="row pb-2 justify-content-center">
+        <div class="col-2 text-right">
+          <label class="col-form-label" for="course-title">Course Name</label>
+        </div>
+        <div class="col-6">
+          <input class="form-control" type="text" id="courseTitle" name="courseTitle" value="{{ course.title }}">
+        </div>
+      </div>
+      <div class="row pb-2 justify-content-center">
+        <div class="col-2 text-right">
+          <label class="col-form-label" for="start-date">Start Date</label>
+        </div>
+        <div class="col-6">
+          <input class="form-control  " type="date" id="startDate" name="start-date" value="{{ course.startDate }}">
+        </div>
+      </div>
+      <div class="row pb-2 justify-content-center">
+        <div class="col-2 text-right">
+          <label class="col-form-label" for="end-date">End Date</label>
+        </div>
+        <div class="col-6">
+          <input class="form-control  " type="date" id="endDate" name="end-date" value="{{ course.endDate }}">
+        </div>
+      </div>
+
+    <div class="row justify-content-center">
+          <input class="text-center ml-1 mr-1 btn btn-success" type="button" value="Submit" name="submit"  onclick="updateCourse()"/>
+          <a class="text-center ml-1 mr-1 btn btn-danger" href="viewCourse.php?course_id={{ course.id }}">Cancel</a>
+      </div>
+    </form>
+    
+  </div>
+</body>
+<script>
+  function updateCourse(){
+    if ( $("#courseTitle").val().trim() == '') {
+      $("#courseTitle").addClass('is-invalid');
+      return;
+    }else{
+      $("#courseTitle").removeClass('is-invalid');
+    }
+
+    data = {
+      action: "update",
+      course_id: "{{ course.id }}"
+    };
+
+    const simpleBindings = [
+    "courseTitle",
+    "startDate",
+    "endDate"
+    ];
+
+    simpleBindings.forEach((key) => { data[key] = $("#"+key).val(); });
+
+    console.log(data);
+    $.ajax({
+          url: "./api/endpoint/course.php",
+          data,
+          method: "POST",
+          cache: false,
+          success: function(response, status, xhr) {
+            window.alert("Course successfully edited!");
+            window.location.href= "viewCourse.php?course_id={{ course.id }}";
+          },
+          error: function (xhr, status, error) {
+            window.alert("Course failed to be edited. Try again later.")
+            console.log(xhr.responseText);
+          }
+        });
+  }
+</script>
+{{ include('common/infoBar.twig.html') }}
+</html>

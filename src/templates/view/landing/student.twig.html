@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+  {{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1 class="text-center">Welcome {{ user.firstName }}</h1>
+      </div>
+    </div>
+
+    <hr />
+
+    <table class="table table-bordered table-responsive-sm" id="student-landing">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Section</th>
+          <th>Instructor</th>
+        </tr>
+      </thead>
+      <tbody id="tableData">
+        {% for course in courses %}
+        <tr>
+          <td><a href="viewSection.php?section_id={{ course.section_id }}">{{ course.title }}</a></td>
+          <td>Lecture: {{ course.meetingTime|date('H:i') }} {{course.meetingDays}}, Lab: {{ course.labMeetingDay }} {{ course.labMeetingTime }} </td>
+          <td>{{ course.instructor }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="p-2 clearfix">
+      <a href="./studentReport.php"class="float-left pr-2">View Report Card</a>
+    </div>
+  </div>
+</body>
+{{ include('common/infoBar.twig.html') }}
+<script>
+  $('#student-landing').DataTable({
+    searching: false,
+    lengthChange: false,
+    bInfo: false,
+    bPaginate: false,
+    "autoWidth": false
+  });
+
+</script>
+
+</html>

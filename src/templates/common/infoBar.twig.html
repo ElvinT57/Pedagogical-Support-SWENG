@@ -1,0 +1,11 @@
+{% if info %}
+    {% if info.type == "ERROR" %}
+    <div class="container fixed-bottom p-1 pl-4 bg-danger text-white">
+    {% elseif info.type == "SUCCESS" %}
+    <div class="container fixed-bottom p-1 pl-4 bg-success text-white">
+    {% else %}
+    <div class="container fixed-bottom p-1 pl-4 bg-primary text-white">
+    {% endif %}
+        {{ info.type|title }}: {{ info.message }}
+    </div>
+{% endif %}

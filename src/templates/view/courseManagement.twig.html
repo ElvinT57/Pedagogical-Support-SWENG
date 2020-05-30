@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <div class="row pb-3">
+      <div class="col">
+        <h1 class="text-center">Create Course</h1>
+      </div>
+    </div>
+    <hr />
+    <form action="courseManagement.php" method="POST">
+      <div class="row pb-2 justify-content-center">
+        <div class="col-2 text-right">
+          <label class="col-form-label" for="course-title">Course Name</label>
+        </div>
+        <div class="col-6">
+          <input class="form-control" type="text" id="course-title" name="courseTitle">
+        </div>
+      </div>
+      <div class="row pb-2 justify-content-center">
+        <div class="col-2 text-right">
+          <label class="col-form-label" for="start-date">Start Date</label>
+        </div>
+        <div class="col-6">
+          <input class="form-control  " type="date" id="start-date" name="start-date">
+        </div>
+      </div>
+      <div class="row pb-2 justify-content-center">
+        <div class="col-2 text-right">
+          <label class="col-form-label" for="end-date">End Date</label>
+        </div>
+        <div class="col-6">
+          <input class="form-control  " type="date" id="end-date" name="end-date">
+        </div>
+      </div>
+
+      <div class="row justify-content-center pb-2 mt-4">
+          <input class="d-inline-block text-center ml-3 mr-3 border border-success btn btn-success" type="submit" value="Submit" name="submit" />
+          <a class="d-inline-block text-center ml-1 mr-1 border border-secondary btn btn-danger" href="landing.php">Cancel</a>
+      </div>
+    </form>
+    
+  </div>
+</body>
+{{ include('common/infoBar.twig.html') }}
+</html>

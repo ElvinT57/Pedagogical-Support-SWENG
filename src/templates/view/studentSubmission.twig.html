@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <h1 class="text-center">Assignment Submission</h1>
+
+    <hr />
+
+    <div class="container text-justify" style="font-size: 1.2rem">
+      <p class="text-justify"><b>Course:</b> {{ course.title }}</p>
+      <p><b>Assignment:</b> {{ assignment.title }}</p>
+      <p><b>Due Date:</b> {{ assignment.dueDate | date("m/d/Y") }}</p>
+      <p><b>Description:</b><br />
+        {{ assignment.description }}</p>
+      <br>
+      
+      {% if assignment.permitsUpload == '1' and assignment.assignmentType == 'Homework' %}
+      <form action="studentSubmission.php?assignment_id={{ assignment.id }}&section_id={{ section.id }}" method="post" enctype="multipart/form-data">
+        <div class="custom-file">
+          <div class="input-group">
+            <div class="custom-file">
+              <input type="file" accept="image/png" class="custom-file-input" name="upload">
+              <label class="custom-file-label" for="inputGroupFile">Choose file</label>
+            </div>
+            <div class="input-group-append">
+              <input class="btn btn-success" type="submit" name="submit" value="Submit"/>
+            </div>
+          </div>
+        </div>
+      </form>
+      {% else %}
+      <h5 class="text-secondary text-center">No upload is required</h5>
+      {% endif %}
+    </div>
+
+    {% if not grades is empty %}
+    <br/>
+    <hr/>
+    <h3 class="text-center ">Previous Submissions</h3>
+    {% for grade in grades %}
+      <div class="container border mb-4 p-3">
+          <div class="row justify-content-between">
+            <div class="col-4">
+              <label><b>Date Submitted:</b> {{ grade.timeSubmitted | date("m/d/Y g:iA")}}</label>
+            </div>
+            <div class="col-3">
+              <label><b>Grade:</b> {{ grade.gradeBase }}</label>
+            </div>
+          </div>
+          {%if not grade.comments is empty or (not grade.manualComment is empty)%}
+          <label><b>Comments</b></label>
+          {% endif %}
+          {% if not grade.manualComment is empty %}
+          <div class="pl-2 pr-2 mb-1 border rounded w-100">
+            <p class="p-1 m-0 w-100">{{ grade.manualComment }}</p>
+          </div>
+          {% endif %}
+          {% for comment in grade.comments %}
+            {% if comment.disabled == "0" %}
+            <div class="pl-2 pr-2 mb-1 border rounded w-100">
+              <p class="p-1 m-0 w-100">{{ comment.text }}</p>
+            </div>
+            {% endif %}
+          {% endfor %}
+      </div>
+    {% endfor %}
+
+    {% endif %}
+  </div>
+  <script>
+    $(document).ready(function() {
+      bsCustomFileInput.init()
+    });
+  </script>
+</body>
+{{ include('common/infoBar.twig.html') }}
+</html>

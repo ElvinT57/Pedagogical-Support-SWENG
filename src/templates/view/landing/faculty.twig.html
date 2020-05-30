@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <h1 class="text-center">Welcome Professor {{ user.lastName }}</h1>
+      </div>
+    </div>
+    <hr />
+
+    <table class="table table-bordered table-responsive-sm" id="faculty-landing">
+      <thead>
+        <th>Course</th>
+      </thead>
+      <tbody id="tableData">
+        {% for course in courses %}
+        <tr>
+          <td><a href="viewCourse.php?course_id={{ course.id }}">{{ course.title }}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="p-2 clearfix">
+      <a href="courseManagement.php" class="float-left pr-4">Create Course</a>
+      <a href="commentMangement.php" class="float-left pr-4">Manage Comments</a>
+    </div>
+  </div>
+</body>
+{{ include('common/infoBar.twig.html') }}
+<script>
+  $('#faculty-landing').DataTable({
+    searching: false,
+    lengthChange: false,
+    bInfo: false,
+    bPaginate: false
+  });
+</script>
+
+</html>

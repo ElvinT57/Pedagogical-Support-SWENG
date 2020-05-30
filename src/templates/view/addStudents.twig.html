@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+  {{ include('common/navbar.twig.html') }}
+  <div class="container">
+
+    <div class="container text-center">
+      <h1>Add Students</h1>
+      <h2>{{ course.title }}</h2>
+      <h3>Section {{ section.number }}</h3>
+    </div>
+    
+    <div class="container mt-4 border-top">
+      
+      <div class="row mt-2">
+        <div class="col-3">
+          <label for="first-name">First Name</label>
+        </div>
+        <div class="col-5">
+          <input type="text" class="form-control" name="first-name" id="first-name">
+        </div>
+      </div>
+
+      <div class="row mt-2">
+        <div class="col-3">
+          <label for="last-name">Last Name</label>
+        </div>
+        <div class="col-5">
+          <input type="text" class="form-control" name="last-name" id="last-name">
+        </div>
+      </div>
+
+      <div class="row mt-2">
+        <div class="col-3">
+          <label for="banner-id">Banner-ID</label>
+        </div>
+        <div class="col-5">
+          <input type="text" class="form-control" name="banner-id" id="banner-id">
+        </div>
+      </div>
+
+      <div class="row mt-2">
+        <div class="col-3">
+          <label for="username">Username</label>
+        </div>
+        <div class="col-5">
+          <input type="text" class="form-control" name="username" id="username">
+        </div>
+      </div>
+
+      <div class="row mt-2">
+        <div class="col-3">
+          <label for="email-address">Email Address</label>
+        </div>
+        <div class="col-5">
+          <input type="text" class="form-control" name="email-address" id="email-address">
+        </div>
+      </div>
+
+      <div class="row mt-4 justify-content-center">
+        <button id="addStudentBtn" class="btn btn-primary" name="add-student-button" onclick="addStudent()">↓ Add Student ↓</button>
+      </div>
+
+    </div>
+
+    <form id="add-multiple-students-form">
+      <div class="container">
+        <table id="student-table" class="table table-bordered table-responsive-sm w-100">
+          <thead>
+          <tr>
+            <th>Last Name</th>
+            <th>First Name</th>
+            <th>Banner-ID</th>
+            <th>Username</th>
+            <th>Email Address</th>
+          </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+        <br />
+        <div class="row justify-content-center">
+          <div class="col-2">
+            <button type="submit" class="btn btn-success" name="submit-button" id="submit-button" >Submit</button>
+          </div>
+          <div class="col-2">
+            <button type="button" class="btn btn-danger" name="cancel-button" disabled>Cancel</button>
+          </div>
+          <div class="col-3">
+            <input type="file" accept=".csv" id="input-file" class="custom-file-input">
+            <label class="custom-file-label" for="input-file">Import List</label>
+          </div>
+        </div>
+      </form>
+      </div>
+
+  </div>
+</body>
+{{ include('common/infoBar.twig.html') }}
+<script>
+  var dTable = $('#student-table').DataTable({
+    searching: false,
+    lengthChange: false,
+    bInfo: true,
+    bPaginate: false,
+    "scrollCollapse": true,
+    "paging": false
+  });
+
+  $(document).ready(function () {
+    $('#input-file').change(function () {
+      let reader = new FileReader();
+      reader.onload = function(e) {
+        // Puts each row from the csv into an array
+        let csvRows = e.target.result.split('\n');
+        for(let row = 1; row < csvRows.length; ++row) {
+          let col = csvRows[row].split(',');
+
+          // Add propper exception handling.
+          if(col.length < 5)
+            continue;
+
+          dTable.row.add([
+            col[0],
+            col[1],
+            col[2],
+            col[3],
+            col[4]
+          ]).draw(false);
+        }
+      }
+      dTable.draw(true);
+      reader.readAsText($('#input-file')[0].files[0]);
+    })
+  })
+
+  // Will assume that there are no "holes" in the table. (No missing data)
+  $('#add-multiple-students-form').submit(function (event) {
+    event.preventDefault();
+    $('#submit-button').prop('disabled', true);
+
+    let tableArray = [];
+    let tableData = dTable.rows().data();
+    let section_id = "{{ section.id }}"
+    for (let i = 0; i < tableData.length; i++) {
+      tableArray.push(tableData[i]);
+    }
+    
+    $.ajax({
+      method: "post",
+      url: "./api/endpoint/user.php",
+      data: {
+        action: 'insert/multiple',
+        students: tableArray,
+        section_id
+      },
+      cache: false,
+      success: function(response, status, xhr) {
+        $('#submit-button').prop('disabled', false);
+        window.alert("Student list succesfully uploaded!")
+      },
+      error: function (xhr, status, error, data) {
+        console.log("Error");
+        console.log(status);
+        console.log(error);
+        $('#submit-button').prop('disabled', false);
+        window.alert("Student list failed to upload. Try again later.")
+      }
+    });
+  });
+
+  function addStudent() {
+    dTable.row.add([
+      $('#first-name').val(),
+      $('#last-name').val(),
+      $('#banner-id').val(),
+      $('#username').val(),
+      $('#email-address').val()
+    ]);
+    dTable.draw();
+
+    //clear out the form
+    $("#banner-id").val("");
+    $("#first-name").val("");
+    $("#last-name").val("");
+    $('#username').val("");
+    $("#email-address").val("");
+  }
+
+</script>
+
+</html>

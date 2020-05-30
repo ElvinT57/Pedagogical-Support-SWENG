@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+<div class="container">
+    <div class="text-sm-left">
+        <a href="javascript:history.back()">Back</a>
+    </div>
+    <div class="container text-center">
+        <table class="table table-bordered table-responsive-sm">
+            <thead>
+            <tr>
+                <th>Students</th>
+                <th>Date Submitted</th>
+                <th>Grade</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for submission in submissions %}
+            <td>submission.name</td>
+            <td>submission.submitDate</td>
+            <td>submission.grade</td>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+{{ include('common/infoBar.twig.html') }}
+</html>

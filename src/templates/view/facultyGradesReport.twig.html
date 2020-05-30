@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{{ include('/common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <div class="container">
+      
+      <h1 class="text-center">Grades Report</h1>
+      <div class="text-center">
+        <h2>{{ course.title }}</h2>
+        <h2>Lecture: {{ section.meetingDays}} {{section.beginTime}}, Lab: {{section.labMeetingDays}} {{section.labBeginTime}}</h2>
+      </div>
+
+      <table class="table table-bordered table-responsive-sm" id="grades-table" data-section_id="{{ section_id }}">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            {% for assignment in assignments %}
+            <th scope="col">{{ assignment.title }} ({{ assignment.dueDate | date('m/d/Y')}})</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for user2 in users %}
+          <tr scope="row">
+            <td>{{ [user2.firstName, user2.lastName]|join(' ') }}</td>
+            {% for assignment in user2.assignments %}
+            <td>
+              {% if not assignment.finalGrade is null %}
+              {{ assignment.finalGrade }}
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <script>
+        $('#grades-table').DataTable();
+      </script>
+
+    </div>
+  </div>
+</body>
+{{ include('common/infoBar.twig.html') }}
+
+</html>

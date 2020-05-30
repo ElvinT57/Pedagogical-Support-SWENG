@@ -1,0 +1,5 @@
+RewriteEnginer On
+AuthType Basic
+AuthName "Restricted Content"
+AuthUserFile C:/xampp/htdocs/PedagogicalSupport/api/model/.htpasswd
+Require valid-user

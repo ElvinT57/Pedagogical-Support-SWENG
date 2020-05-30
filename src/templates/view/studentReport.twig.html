@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+{{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <div class="row pb-3">
+      <div class="col">
+        <h1 class="text-center">Report Card</h1>
+      </div>
+    </div>
+    <hr />
+    <div class="container">
+      <table class="table table-bordered table-responsive-sm" id="student-report">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Section</th>
+            <th>Points Earned</th>
+            <th>Max Points</th>
+            <th>Current Grade</th>
+          </tr>
+          </thead>
+        <tbody>
+          {% for course in courses %}
+          <tr>
+            <td>{{ course.title }}</td>
+            <td>Lecture: {{ course.meetingDays }} {{ course.meetingTime }}<br>
+                Lab: {{ course.labMeetingDay }} {{ course.labMeetingTime }}
+            </td>
+            <td>{{ course.currentGrade }}</td>
+            <td>{{ course.maxGrade }}</td>
+            <td>
+              {% if course.currentGrade > 0 %}
+              {{ ((course.currentGrade/course.maxGrade)*100)|number_format(1) }}%
+              {% else %}
+              0
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+{{ include('common/infoBar.twig.html') }}
+<script>
+  $(document).ready(function() {
+    $('#student-report').DataTable({
+      searching: false,
+      lengthChange: false,
+      bInfo: false,
+      bPaginate: false
+    });
+  });
+</script>
+
+</html>

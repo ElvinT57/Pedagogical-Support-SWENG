@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+{{ include('common/header.twig.html') }}
+
+<body>
+  {{ include('common/navbar.twig.html') }}
+  <div class="container">
+    <h1 class="text-center">Edit Assignment</h1>
+    <form id="edit-form" method="POST">
+      <div class="row pb-2">
+        <div class="col-2 text-right">
+          <label for="title" class="col-form-label">Title</label>
+        </div>
+        <div class="col-8">
+          <input class="form-control" id="title" type="text" name="assignment-title" value="{{ assignment.title }}" />
+        </div>
+      </div>
+      <div class="row pb-2">
+        <div class="col-2 text-right">
+          <label for="assignmentType" class="col-form-label">Type</label>
+        </div>
+        <div class="col-4">
+          <select id="assignmentType" class="custom-select" name="assignmentType" value="{{ assignment.assignmentType }}">
+            <option value="Homework">Homework</option>
+            <option value="Lab">Lab</option>
+          </select>
+        </div>
+        <div class="col-4">
+          <div class="row">
+            {% if assignment.permitsUpload == 1 %}
+            <div class="col form-check">
+              <input class="form-check-input" id="upload-false" type="radio" name="permitsUpload" value="false" />
+              <label for="upload-false" class="form-check-label">No Upload</label>
+            </div>
+            <div class="col form-check">
+              <input class="form-check-input" id="upload-true" type="radio" name="permitsUpload" value="true" checked />
+              <label for="upload-true" class="form-check-label">Needs Upload</label>             
+            </div>
+            {% else %}
+            <div class="col form-check">
+              <input class="form-check-input" id="upload-false" type="radio" name="permitsUpload" value="false" checked />
+              <label for="upload-false" class="form-check-label">No Upload</label>
+            </div>
+            <div class="col form-check">
+              <input class="form-check-input" id="upload-true" type="radio" name="permitsUpload" value="true" />
+              <label for="upload-true" class="form-check-label">Needs Upload</label>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="row pb-2">
+        <div class="col-2 text-right">
+          <label for="description" class="col-form-label">Description</label>
+        </div>
+        <div class="col-8">
+          <textarea class="form-control" id="description" name="description">{{ assignment.description }}</textarea>
+        </div>
+      </div>
+
+      <div class="row pb-2">
+        <div class="col-2 text-right">
+          <label for="number" class="col-form-label">Assignment #</label>
+        </div>
+        <div class="col-8">
+          <input class="form-control" id="number" type="number" min="1" onchange="rangeMin(this, 1)"  name="number" value="{{ assignment.number }}"/>
+        </div>
+      </div>
+
+      <div class="row pb-2">
+        <div class="col-2 text-right">
+          <label for="dateAvailable" class="col-form-label">Date Available</label>
+        </div>
+        <div class="col-8">
+          <input class="form-control" id="dateAvailable" type="datetime" name="dateAvailable" value="{{ sectionAssignment.dateAvailable }}" />
+        </div>
+      </div>
+
+      <div class="row pb-2">
+        <div class="col-2 text-right">
+          <label for="dateDue" class="col-form-label">Date Due</label>
+        </div>
+        <div class="col-8">
+          <input class="form-control" id="dateDue" type="datetime" name="dateDue" value="{{ sectionAssignment.dateDue }}" />
+        </div>
+      </div>
+
+      <div class="row pb-2">
+        <div class="col-2 text-right">
+          <label for="maxGrade" class="col-form-label">Points</label>
+        </div>
+        <div class="col-8">
+          <input class="form-control" id="maxGrade" type="number" min="0" name="maxGrade" onchange="rangeMin(this, 1)"  value="{{ assignment.maxGrade }}"/>
+        </div>
+      </div>
+      <!-- TODO: Fix responsive wrapping, this needs wrap to a new line -->
+      <div class="row pb-2">
+        <div class="col-2 text-right">
+          <label for="latePenalty" class="col-form-label">Late Penalty</label>
+        </div>
+        <div class="col-3">
+          <input class="form-control" id="latePenalty" type="number" min="0" step=".1" name="latePenalty" onchange="rangeMin(this, 0)" value="{{ sectionAssignment.latePenalty }}"/>
+        </div>
+
+        <div class="col-2 text-right">
+          <label for="latePenaltyInterval" class="col-form-label">Penalty Interval (Days)</label>
+        </div>
+        <div class="col-3">
+          <input id="latePenaltyInterval" class="form-control" type="number" min="0" max="365" onchange="rangeMin(this, 0)" name="latePenaltyInterval" value="{{ sectionAssignment.latePenaltyInterval }}"/>
+        </div>
+      </div>
+      <div class="row pb-2">
+        <div class="col-2 text-right">
+          <label for="sections" class="col-form-label">Sections</label>
+        </div>
+
+        <div class="col-8">
+          <div id="sections" class="row">
+            {% for section in sections %}
+
+            {% if section.id == currentSection.id %}
+            <div class="col">
+              <label for="section-{{ section.id }}" class="col-form-label">{{ section.number }}</label>
+              <input id="section-{{ section.id }}" type="checkbox" name="section-{{ section.id }}" value="{{ section.id }}" checked/>
+            </div>
+            {% else %}
+            <div class="col">
+              <label for="section-{{ section.id }}" class="col-form-label">{{ section.number }}</label>
+              <input id="section-{{ section.id }}" type="checkbox" name="section-{{ section.id }}" value="{{ section.id }}" />
+            </div>
+            {% endif %}
+
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="row justify-content-center pb-2">
+        <div class="col-2">
+          <input id="submit-button" class="btn btn-success" type="submit" value="Submit" name="submit" />
+        </div>
+        <div class="col-2">
+          {% if assignment.assignmentType == "Homework" %}
+            <a class="btn btn-danger" href="viewGrades.php?assignment_id={{ assignment.assignment_id }}&section_id={{ currentSection.id }}">Cancel</a>
+          {% else %}
+            <a class="btn btn-danger" href="sectionLabAssignments.php?course_id={{ course.id }}&assignment_id={{ assignment.assignment_id }}&section_id={{ currentSection.id }}">Cancel</a>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  </div>
+  <script>
+    function validateForm() {
+      let titleCheck = true;
+      let assignNumCheck = true;
+      let uploadCheck = true;
+      let dAvailCheck = true;
+      let dDue = true;
+      let pointCheck = true;
+      let latePointCheck = true;
+      let latePenCheck = true;
+      //let sectionCheck = true;
+      var sectionCount = 0;
+//test push comment
+      if ( $("#title").val().trim() == '') {
+        titleCheck = false;
+      }
+      if ( $("#number").val().trim() == '') {
+        assignNumCheck = false;
+      }
+      if ( (!$("#upload-true").prop("checked")) && (!$("#upload-false").prop("checked")) ) {
+        uploadCheck = false;
+      }
+      if ( $("#dateAvailable").val() == '') {
+        dAvailCheck = false;
+      }
+      if ( $("#dateDue").val() == '') {
+        dDue = false;
+      }
+      if ( $("#maxGrade").val().trim() == '') {
+        pointCheck = false;
+      }
+      if ( $("#latePenalty").val() == '') {
+        latePointCheck = false;
+      }
+      if ( $("#latePenaltyInterval").val() == '') {
+        latePenCheck = false;
+      }
+
+      $('#sections input').each(function (i, element) {
+        console.log("Inside each loop");
+        if ($(element).prop("checked")) {
+          sectionCount+= 1;
+        }
+      })
+      console.log(sectionCount);
+
+      if (titleCheck && assignNumCheck && uploadCheck && dAvailCheck && dDue && pointCheck && latePointCheck && latePenCheck && (sectionCount > 0)) {
+        $('#submit-button').prop( "disabled", false);
+      }
+      else {
+        $('#submit-button').prop( "disabled", true);
+      }
+
+    }
+
+    $(document).ready(function() {
+      validateForm();
+      $('#title').on("input", validateForm);
+      $('#number').on("input", validateForm);
+      $('#upload-true').on("input", validateForm);
+      $("#dateDue").on("input", validateForm);
+      $("#dateAvailable").on("input", validateForm);
+      $("#maxGrade").on("input", validateForm);
+      $("#latePenalty").on("input", validateForm);
+      $("#latePenaltyInterval").on("input", validateForm);
+      $('#sections input').on("input", validateForm);
+
+      //set the value of type to correspond with the assignment info
+      $('#assignmentType').val($('#assignmentType').attr('value'));
+
+      $("#edit-form").submit(function(event) {
+        event.preventDefault();
+
+        data = {
+          action: "update",
+          id: "{{ assignment.assignment_id }}"
+        };
+
+        const simpleBindings = [
+          "title",
+          "description",
+          "maxGrade",
+          "number",
+          "assignmentType",
+          "dateAvailable",
+          "dateDue",
+          "latePenalty",
+          "latePenaltyInterval"
+        ];
+
+        simpleBindings.forEach((key) => { data[key] = $("#"+key).val(); });
+
+        data["permitsUpload"] = $("input[name=permitsUpload]:checked").val();
+        
+        let section_ids = [];
+        $('#sections input[type="checkbox"]').each(function(index, elem) {
+          let box = $(elem);
+          if (box.prop("checked")) {
+            section_ids.push(box.val());
+          }
+        });
+
+        data["section_ids"] = section_ids;
+
+        $('#submit-button').prop('disabled', true);
+  
+        $.ajax({
+          url: "./api/endpoint/assignment.php",
+          data,
+          method: "POST",
+          cache: false,
+          success: function(response, status, xhr) {
+            window.alert("Assignment successfully edited!");
+            if(data['assignmentType'] === "Homework"){
+              window.location.href= "viewGrades.php?assignment_id={{ assignment.assignment_id }}&section_id={{ currentSection.id }}";
+            }else if(data['assignmentType'] === "Lab"){
+              window.location.href= "sectionLabAssignments.php?course_id={{ course.id }}&assignment_id={{ assignment.assignment_id }}&section_id={{ currentSection.id }}";
+            }
+          },
+          error: function (xhr, status, error) {
+            window.alert("Assignment failed to be edited. Try again later.")
+            console.log(xhr.responseText);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+{{ include('common/infoBar.twig.html') }}
+</html>
