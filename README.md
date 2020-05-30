@@ -1,4 +1,4 @@
 # Rowan Software Engineering Project
 
-##POC:
+###POC:
 - [Jack Myers](http://jackmyers.info/) - myersjac@rowan.edu
